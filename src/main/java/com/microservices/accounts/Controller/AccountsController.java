@@ -1,10 +1,7 @@
 package com.microservices.accounts.Controller;
 
 import com.microservices.accounts.Constants.AccountConstants;
-import com.microservices.accounts.DTO.AccountDTO;
-import com.microservices.accounts.DTO.CustomerDTO;
-import com.microservices.accounts.DTO.ErrorResponseDTO;
-import com.microservices.accounts.DTO.ResponseDTO;
+import com.microservices.accounts.DTO.*;
 import com.microservices.accounts.Enitity.Customer;
 import com.microservices.accounts.Service.IAccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +14,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,22 @@ import java.awt.*;
 )
 @RestController
 @RequestMapping(path="/api", produces = {MediaType.APPLICATION_JSON_VALUE})
-@AllArgsConstructor
 @Validated
 public class AccountsController {
     private IAccountService iAccountService;
+
+    public AccountsController (IAccountService iAccountService){
+        this.iAccountService=iAccountService;
+    }
+    @Value("${build.version}")
+    private String buildVersion;
+
+    @Autowired
+    private Environment environment;
+
+    @Autowired
+    private AccountsContactInfoDto accountsContactInfoDto;
+
     @Operation(
             summary = "Create Rest API for Accounts controller",
             description = "Rest API to create new Customer,Account inside EazyBank"
@@ -148,5 +161,25 @@ public class AccountsController {
                     .body(new ResponseDTO(AccountConstants.STATUS_417,AccountConstants.MESSAGE_417_DELETE));
         }
 
+    }
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/contact-info")
+    public ResponseEntity<AccountsContactInfoDto> getContactInfo() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(accountsContactInfoDto);
     }
 }
